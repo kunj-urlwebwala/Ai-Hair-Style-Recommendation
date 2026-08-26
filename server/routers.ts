@@ -7,9 +7,10 @@ import {
   customerRequirementsSchema,
   imageMimeTypeSchema,
 } from "./hairstyle-service";
+import { persistConsultation } from "./api/v1-hairstyle-router";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, router } from "./_core/trpc";
+import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 
 function publicOrigin(req: any) {
   const forwardedProtocol = typeof req.headers?.["x-forwarded-proto"] === "string" ? req.headers["x-forwarded-proto"].split(",")[0] : undefined;
@@ -32,10 +33,14 @@ export const appRouter = router({
   }),
   // Retained for the MVP tester. External integrations should use /api/v1/hairstyle/*.
   consultation: router({
-    analyze: publicProcedure
+    analyze: protectedProcedure
       .input(z.object({ imageBase64: z.string().min(100).max(14_000_000), mimeType: imageMimeTypeSchema, requirements: customerRequirementsSchema.optional() }))
-      .mutation(({ ctx, input }) => createConsultation({ ...input, publicOrigin: publicOrigin(ctx.req) })),
-    tryOn: publicProcedure
+      .mutation(async ({ ctx, input }) => {
+        const consultation = await createConsultation({ ...input, publicOrigin: publicOrigin(ctx.req) });
+        await persistConsultation(ctx.user.id, consultation);
+        return consultation;
+      }),
+    tryOn: protectedProcedure
       .input(z.object({ sourceImageUrl: z.string().url(), mimeType: imageMimeTypeSchema, styleName: z.string().min(2).max(80), stylePrompt: z.string().min(10).max(900) }))
       .mutation(({ ctx, input }) => createTryOn({
         sourceImageUrl: input.sourceImageUrl,

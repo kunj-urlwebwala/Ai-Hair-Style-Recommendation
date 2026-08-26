@@ -33,6 +33,12 @@ yarn-error.*
 # local env files
 .env*.local
 
+# runtime data
+.env
+storage/
+database/*.db
+database/*.db-*
+
 # typescript
 *.tsbuildinfo
 
@@ -64,3 +70,7 @@ Thumbs.db
 # Webdev artifacts (checkpoint zips, migrations, etc.)
 .webdev/
 .project-config.json
+
+# Exclude extracted standalone server folders
+hairstyle-recommendation-api/
+server-standalone/

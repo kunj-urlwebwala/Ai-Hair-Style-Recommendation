@@ -5,6 +5,7 @@ info:
   description: |
     Node.js REST API for an India-focused hairstyle consultation and hairstyle-only virtual try-on MVP.
     Portrait analysis and preview generation are best-effort visual guidance. The service instructs AI providers to preserve the original face and identity while changing only hair.
+    AI endpoints require a signed-in account: pass the session cookie or an `Authorization: Bearer <token>` header.
 servers:
   - url: https://api.example.com/api/v1
     description: Replace with the deployed Mirror Node API URL.
@@ -39,6 +40,8 @@ paths:
                 $ref: '#/components/schemas/ConsultationResponse'
         '400':
           $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '413':
           $ref: '#/components/responses/PayloadTooLarge'
         '422':
@@ -47,8 +50,65 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/RateLimited'
         '502':
           $ref: '#/components/responses/AiProviderError'
+  /hairstyle/saved-looks:
+    get:
+      summary: List the signed-in customer's saved looks
+      operationId: listSavedLooks
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Saved looks ordered newest first.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SavedLooksResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      summary: Save a generated preview to the customer's shortlist
+      operationId: createSavedLook
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SavedLookRequest'
+      responses:
+        '201':
+          description: Look was saved.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SavedLookResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /hairstyle/saved-looks/{id}:
+    delete:
+      summary: Remove a saved look
+      operationId: deleteSavedLook
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Look was removed.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: No such saved look for this account.
   /hairstyle/try-ons:
     post:
       summary: Generate a hairstyle-only virtual try-on
@@ -68,10 +128,31 @@ paths:
                 $ref: '#/components/schemas/TryOnResponse'
         '400':
           $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
         '502':
           $ref: '#/components/responses/AiProviderError'
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   responses:
+    Unauthorized:
+      description: No session or an expired session. Sign in again.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    RateLimited:
+      description: The account reached its daily limit for this feature.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
     ValidationError:
       description: Request body or field validation failed.
       content:
@@ -261,3 +342,53 @@ components:
       properties:
         status: { type: string, enum: [ready, retake] }
         message: { type: string }
+    SavedLookRequest:
+      type: object
+      required: [consultationId, recommendation, previewImageUrl]
+      properties:
+        consultationId:
+          type: string
+          description: Must be a consultation created by this account.
+          example: con_9b9c3d1e
+        recommendation:
+          $ref: '#/components/schemas/HairstyleRecommendation'
+        previewImageUrl:
+          type: string
+          format: uri
+          description: A /uploads/generated/ preview URL returned by the try-on endpoint.
+    SavedLookResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: object
+          required: [look]
+          properties:
+            look:
+              $ref: '#/components/schemas/SavedLook'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    SavedLooksResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: object
+          required: [looks]
+          properties:
+            looks:
+              type: array
+              items:
+                $ref: '#/components/schemas/SavedLook'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    SavedLook:
+      type: object
+      required: [id, consultationId, recommendation, previewImageUrl, createdAt]
+      properties:
+        id: { type: string, example: look_9b9c3d1e2f3a4b5c }
+        consultationId: { type: string }
+        recommendation:
+          $ref: '#/components/schemas/HairstyleRecommendation'
+        previewImageUrl: { type: string, format: uri }
+        createdAt: { type: string, format: date-time }

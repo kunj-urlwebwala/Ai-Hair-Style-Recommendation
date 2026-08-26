@@ -1,26 +1,21 @@
-# Project TODO
+# Mirror Roadmap
 
-- [x] Define mobile-first customer experience, visual system, and local domain models
-- [x] Build the Home and portrait-selection journey
-- [x] Add photo review, consent, and guided analysis progress experience
-- [x] Build personalized style profile and hairstyle recommendation screens
-- [x] Build virtual try-on comparison and saved looks interaction
-- [x] Add photo-selection behavior and server-side AI consultation data
-- [x] Generate branded mobile icon and update application configuration
-- [x] Add automated tests for core consultation-state behavior
-- [x] Validate TypeScript and application build output
-- [x] Add free-text customer hairstyle requirements and preference cues
-- [x] Add Indian hair and hairstyle context to the AI consultation contract
-- [x] Refactor the Node.js service around versioned Flutter-ready REST endpoints
-- [x] Add secure image upload, validation, storage, and consistent API error responses
-- [x] Strengthen hairstyle-only generation prompts and result metadata for identity preservation evaluation
-- [x] Add backend API reference documentation and integration examples for Flutter/Laravel
-- [x] Validate the updated end-to-end API and MVP test flow
-- [x] Make the virtual try-on screen fully scrollable and expose a clear return-to-photo action
-- [x] Add close-portrait detection and helpful retake guidance before AI analysis
-- [x] Reduce perceived generation latency with better job status handling and performance guidance
-- [x] Add environment-configured primary and fallback AI model routing for Gemini and OpenAI
-- [x] Separate frontend, backend, and database handoff materials with a clean directory structure
-- [x] Define the database integration contract for mapping the existing Laravel database
-- [x] Create a system architecture diagram and role-specific handoff guides for backend, Flutter, and project management teams
-- [x] Validate the reliability updates, configuration contract, and team-handoff package
+## Done
+
+- Local email/password auth with JWT sessions (web cookie + native Bearer)
+- AI hairstyle consultation and identity-preserving try-on via Gemini/OpenAI with failover
+- Consultations persisted per account; saved looks synced to the database
+- Auth required on AI endpoints with per-account daily rate limits
+- Password reset via one-time email codes (optional Resend integration)
+- Curated style library on the home screen
+- Root error boundary; test suite covering auth flow, DB layer, and rate limits
+
+## Next ideas
+
+- [ ] Show past consultations in a History tab (data already stored)
+- [ ] Share/save a preview to device gallery (expo-media-library)
+- [ ] Admin role utilities (user list, usage stats) behind the existing admin gate
+- [ ] Swap in-memory rate limiting for a shared store when running multiple instances
+- [ ] Deployment config: Dockerfile for the API + EAS build profiles for mobile
+- [ ] Structured request logging (pino/morgan) and basic metrics
+- [ ] Localization pass (Gujarati/Hindi copy alongside English)

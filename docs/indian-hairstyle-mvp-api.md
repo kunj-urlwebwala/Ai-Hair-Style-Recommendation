@@ -46,7 +46,7 @@ The `prompt` field is optional but recommended and is limited to 500 characters.
   "data": {
     "consultation": {
       "id": "con_9b9c3d1e",
-      "sourceImageUrl": "https://api.example.com/manus-storage/consultations/example.jpg",
+      "sourceImageUrl": "https://api.example.com/uploads/consultations/example.jpg",
       "requirements": {
         "prompt": "I want a polished low-maintenance professional look with short hair.",
         "occasion": "professional",
@@ -82,7 +82,7 @@ The `prompt` field is optional but recommended and is limited to 500 characters.
 
 ```json
 {
-  "sourceImageUrl": "https://api.example.com/manus-storage/consultations/example.jpg",
+  "sourceImageUrl": "https://api.example.com/uploads/consultations/example.jpg",
   "mimeType": "image/jpeg",
   "style": {
     "id": "textured-taper",

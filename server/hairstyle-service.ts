@@ -106,7 +106,7 @@ async function invokeAnalysisWithFailover(messages: Parameters<typeof invokeLLM>
   let lastError: unknown;
   for (const model of candidates) {
     try {
-      const response = await invokeLLM({ model, messages, response_format: { type: "json_object" } });
+      const response = await invokeLLM({ model, messages, responseFormat: { type: "json_object" } });
       return { response, model };
     } catch (error) {
       lastError = error;
@@ -138,7 +138,7 @@ async function generateTryOnWithFailover(options: Parameters<typeof generateImag
 function ensureInternalStoredPortrait(sourceImageUrl: string, publicOrigin: string) {
   const parsed = new URL(sourceImageUrl);
   const publicUrl = new URL(publicOrigin);
-  if (parsed.origin !== publicUrl.origin || !parsed.pathname.startsWith("/manus-storage/consultations/")) {
+  if (parsed.origin !== publicUrl.origin || !parsed.pathname.startsWith("/uploads/consultations/")) {
     throw new ApiError(400, "INVALID_SOURCE_IMAGE", "The source image must be a portrait returned by the consultation API.");
   }
 }
