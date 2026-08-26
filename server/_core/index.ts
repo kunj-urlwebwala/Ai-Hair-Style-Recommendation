@@ -7,6 +7,7 @@ import { registerOAuthRoutes } from "./oauth";
 import { registerStorageProxy } from "./storageProxy";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
+import { createV1HairstyleRouter } from "../api/v1-hairstyle-router";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise((resolve) => {
@@ -31,10 +32,12 @@ async function startServer() {
   const app = express();
   const server = createServer(app);
 
-  // Enable CORS for all routes - reflect the request origin to support credentials
+  // In development, allow the test client origin. Production should configure an explicit origin allowlist.
   app.use((req, res, next) => {
     const origin = req.headers.origin;
-    if (origin) {
+    const configuredOrigins = (process.env.CORS_ALLOWED_ORIGINS ?? "").split(",").map((value) => value.trim()).filter(Boolean);
+    const isDevelopment = process.env.NODE_ENV !== "production";
+    if (origin && (isDevelopment || configuredOrigins.includes(origin))) {
       res.header("Access-Control-Allow-Origin", origin);
     }
     res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
@@ -52,8 +55,8 @@ async function startServer() {
     next();
   });
 
-  app.use(express.json({ limit: "50mb" }));
-  app.use(express.urlencoded({ limit: "50mb", extended: true }));
+  app.use(express.json({ limit: "15mb" }));
+  app.use(express.urlencoded({ limit: "15mb", extended: true }));
 
   registerStorageProxy(app);
   registerOAuthRoutes(app);
@@ -61,6 +64,8 @@ async function startServer() {
   app.get("/api/health", (_req, res) => {
     res.json({ ok: true, timestamp: Date.now() });
   });
+
+  app.use("/api/v1", createV1HairstyleRouter());
 
   app.use(
     "/api/trpc",

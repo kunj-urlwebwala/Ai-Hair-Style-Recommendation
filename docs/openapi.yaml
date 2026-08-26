@@ -1,0 +1,243 @@
+openapi: 3.1.0
+info:
+  title: Mirror AI Hairstyle MVP API
+  version: 1.0.0-mvp
+  description: |
+    Node.js REST API for an India-focused hairstyle consultation and hairstyle-only virtual try-on MVP.
+    Portrait analysis and preview generation are best-effort visual guidance. The service instructs AI providers to preserve the original face and identity while changing only hair.
+servers:
+  - url: https://api.example.com/api/v1
+    description: Replace with the deployed Mirror Node API URL.
+paths:
+  /health:
+    get:
+      summary: Check API availability
+      operationId: getHealth
+      responses:
+        '200':
+          description: API is available.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+  /hairstyle/consultations:
+    post:
+      summary: Create an Indian-context hairstyle consultation
+      operationId: createConsultation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConsultationRequest'
+      responses:
+        '201':
+          description: Consultation was created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsultationResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '502':
+          $ref: '#/components/responses/AiProviderError'
+  /hairstyle/try-ons:
+    post:
+      summary: Generate a hairstyle-only virtual try-on
+      operationId: createTryOn
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TryOnRequest'
+      responses:
+        '201':
+          description: Virtual try-on was generated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TryOnResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '502':
+          $ref: '#/components/responses/AiProviderError'
+components:
+  responses:
+    ValidationError:
+      description: Request body or field validation failed.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    PayloadTooLarge:
+      description: Request payload exceeds the API body limit.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    AiProviderError:
+      description: A configured analysis or image-generation provider could not return a usable result.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  schemas:
+    ImageInput:
+      type: object
+      required: [base64, mimeType]
+      properties:
+        base64:
+          type: string
+          minLength: 100
+          description: JPEG, PNG, or WebP image bytes encoded as base64 without a data URI prefix. Decoded file limit is 10 MB.
+        mimeType:
+          type: string
+          enum: [image/jpeg, image/png, image/webp]
+    CustomerRequirements:
+      type: object
+      properties:
+        prompt:
+          type: string
+          maxLength: 500
+          example: I want a polished low-maintenance professional look with short hair.
+        occasion:
+          type: string
+          enum: [everyday, professional, festive, wedding, other]
+        lengthPreference:
+          type: string
+          enum: [short, medium, long, open]
+        maintenancePreference:
+          type: string
+          enum: [low, medium, high, open]
+    ConsultationRequest:
+      type: object
+      required: [image]
+      properties:
+        image:
+          $ref: '#/components/schemas/ImageInput'
+        requirements:
+          $ref: '#/components/schemas/CustomerRequirements'
+    StyleAnalysis:
+      type: object
+      required: [faceShape, overview, featureNotes, stylePrinciples, confidenceNote]
+      properties:
+        faceShape: { type: string }
+        overview: { type: string }
+        featureNotes:
+          type: array
+          items: { type: string }
+        stylePrinciples:
+          type: array
+          items: { type: string }
+        confidenceNote: { type: string }
+    HairstyleRecommendation:
+      type: object
+      required: [id, name, description, whyItWorks, maintenance, texture, tone, prompt]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        description: { type: string }
+        whyItWorks: { type: string }
+        maintenance: { type: string, enum: [Low, Medium, High] }
+        texture: { type: string }
+        tone: { type: string }
+        prompt:
+          type: string
+          description: Server-constrained hairstyle-only edit instruction.
+    Consultation:
+      type: object
+      required: [id, sourceImageUrl, requirements, analysis, recommendations]
+      properties:
+        id: { type: string, example: con_9b9c3d1e }
+        sourceImageUrl: { type: string, format: uri }
+        requirements:
+          $ref: '#/components/schemas/CustomerRequirements'
+        analysis:
+          $ref: '#/components/schemas/StyleAnalysis'
+        recommendations:
+          type: array
+          minItems: 4
+          maxItems: 4
+          items:
+            $ref: '#/components/schemas/HairstyleRecommendation'
+    Meta:
+      type: object
+      required: [requestId, apiVersion]
+      properties:
+        requestId: { type: string }
+        apiVersion: { type: string, example: v1 }
+    ConsultationResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: object
+          required: [consultation]
+          properties:
+            consultation:
+              $ref: '#/components/schemas/Consultation'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    TryOnRequest:
+      type: object
+      required: [sourceImageUrl, mimeType, style]
+      properties:
+        sourceImageUrl: { type: string, format: uri }
+        mimeType: { type: string, enum: [image/jpeg, image/png, image/webp] }
+        style:
+          type: object
+          required: [name, prompt]
+          properties:
+            id: { type: string }
+            name: { type: string, minLength: 2, maxLength: 80 }
+            prompt: { type: string, minLength: 10, maxLength: 900 }
+    TryOn:
+      type: object
+      required: [id, previewImageUrl, preservation]
+      properties:
+        id: { type: string, example: try_9b9c3d1e }
+        previewImageUrl: { type: string, format: uri }
+        preservation:
+          type: object
+          required: [target, note]
+          properties:
+            target: { type: string, example: hairstyle_only }
+            note: { type: string }
+    TryOnResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: object
+          required: [tryOn]
+          properties:
+            tryOn:
+              $ref: '#/components/schemas/TryOn'
+        meta:
+          $ref: '#/components/schemas/Meta'
+    HealthResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: object
+          properties:
+            status: { type: string, example: ok }
+            service: { type: string, example: mirror-hairstyle-mvp }
+        meta:
+          $ref: '#/components/schemas/Meta'
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, requestId]
+          properties:
+            code: { type: string, example: VALIDATION_ERROR }
+            message: { type: string }
+            requestId: { type: string }
+            details: { type: object }
