@@ -7,4 +7,9 @@ export const ENV = {
   isProduction: process.env.NODE_ENV === "production",
   forgeApiUrl: process.env.BUILT_IN_FORGE_API_URL ?? "",
   forgeApiKey: process.env.BUILT_IN_FORGE_API_KEY ?? "",
+  analysisPrimaryModel: process.env.AI_ANALYSIS_PRIMARY_MODEL ?? "gemini-3-flash-preview",
+  analysisFallbackModel: process.env.AI_ANALYSIS_FALLBACK_MODEL ?? "gpt-5-mini",
+  tryOnPrimaryImageModel: process.env.AI_TRYON_PRIMARY_IMAGE_MODEL ?? "MODEL_GPT_IMAGE_2",
+  tryOnFallbackImageModel: process.env.AI_TRYON_FALLBACK_IMAGE_MODEL ?? "",
+  tryOnImageQuality: process.env.AI_TRYON_IMAGE_QUALITY ?? "medium",
 };

@@ -17,8 +17,14 @@ export type StyleAnalysis = {
   confidenceNote: string;
 };
 
+export type PortraitCheck = {
+  status: "ready" | "retake";
+  message: string;
+};
+
 export type ConsultationResponse = {
   sourceImageUrl: string;
+  portraitCheck: PortraitCheck;
   analysis: StyleAnalysis;
   recommendations: HairstyleRecommendation[];
 };
@@ -39,6 +45,11 @@ export const fallbackStyleAnalysis: StyleAnalysis = {
   ],
   confidenceNote:
     "This profile is visual inspiration from one portrait, not a promise of an identical salon result.",
+};
+
+export const fallbackPortraitCheck: PortraitCheck = {
+  status: "ready",
+  message: "Your portrait is framed well enough to begin the consultation.",
 };
 
 export const fallbackRecommendations: HairstyleRecommendation[] = [
@@ -121,8 +132,13 @@ function normalizeRecommendation(value: unknown, index: number): HairstyleRecomm
 export function parseStyleAnalysis(content: string): Omit<ConsultationResponse, "sourceImageUrl"> {
   const parsed = JSON.parse(content) as Record<string, unknown>;
   const analysisCandidate = typeof parsed.analysis === "object" && parsed.analysis !== null ? (parsed.analysis as Record<string, unknown>) : {};
+  const portraitCandidate = typeof parsed.portraitCheck === "object" && parsed.portraitCheck !== null ? (parsed.portraitCheck as Record<string, unknown>) : {};
   const recommendationsCandidate = Array.isArray(parsed.recommendations) ? parsed.recommendations : [];
   return {
+    portraitCheck: {
+      status: portraitCandidate.status === "retake" ? "retake" : "ready",
+      message: asText(portraitCandidate.message, fallbackPortraitCheck.message).slice(0, 220),
+    },
     analysis: {
       faceShape: asText(analysisCandidate.faceShape, fallbackStyleAnalysis.faceShape).slice(0, 48),
       overview: asText(analysisCandidate.overview, fallbackStyleAnalysis.overview).slice(0, 420),

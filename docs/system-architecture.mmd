@@ -1,0 +1,43 @@
+flowchart LR
+  subgraph Client[Existing Product]
+    Flutter[Flutter customer feature]
+    Laravel[LARAVEL platform / auth]
+  end
+
+  subgraph Node[Mirror Node.js AI Service]
+    API[Versioned REST API]
+    Guard[Validation + tenancy + portrait guard]
+    Analysis[Consultation orchestrator]
+    TryOn[Try-on job orchestrator]
+    ModelRoute[Primary / fallback router]
+  end
+
+  subgraph AI[Server-only AI providers]
+    Gemini[Gemini visual analysis]
+    OpenAI[OpenAI analysis fallback]
+    ImagePrimary[Primary image edit]
+    ImageFallback[Fallback image edit]
+  end
+
+  subgraph Data[Data and storage]
+    ObjectStore[Portrait and preview object storage]
+    AiDb[AI feature schema]
+    LaravelDb[Existing Laravel database]
+  end
+
+  Flutter -->|JWT + portrait + requirement| API
+  Laravel -->|tenant/customer context| API
+  API --> Guard
+  Guard --> Analysis
+  Guard --> TryOn
+  Analysis --> ModelRoute
+  TryOn --> ModelRoute
+  ModelRoute --> Gemini
+  ModelRoute --> OpenAI
+  ModelRoute --> ImagePrimary
+  ModelRoute --> ImageFallback
+  Analysis --> ObjectStore
+  TryOn --> ObjectStore
+  API --> AiDb
+  AiDb -.maps stable IDs.-> LaravelDb
+  API -->|response / job status| Flutter

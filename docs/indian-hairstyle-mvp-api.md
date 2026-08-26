@@ -10,7 +10,7 @@ The first integration surface is a versioned JSON REST API under `/api/v1`. The 
 
 | Stage | REST endpoint | Input | Output |
 |---|---|---|---|
-| Validate and analyze a portrait | `POST /api/v1/hairstyle/consultations` | Portrait bytes as base64, MIME type, free-text requirement, optional occasion and maintenance preference | Stored source image, neutral visual analysis, and four recommendations |
+| Validate and analyze a portrait | `POST /api/v1/hairstyle/consultations` | Portrait bytes as base64, MIME type, free-text requirement, optional occasion and maintenance preference | `422 PHOTO_RETAKE_REQUIRED` when the full hair framing is unavailable, otherwise stored source image, neutral visual analysis, and four recommendations |
 | Generate a selected look | `POST /api/v1/hairstyle/try-ons` | Source image URL, style name, style-only prompt, original MIME type | Stored preview URL and generation metadata |
 | Check API availability | `GET /api/v1/health` | None | Version, service health, and request ID |
 
@@ -37,7 +37,7 @@ Recommendations should account for visible hair texture and density only when th
 }
 ```
 
-The `prompt` field is optional but recommended and is limited to 500 characters. `occasion`, `lengthPreference`, and `maintenancePreference` are optional, normalized values that improve filtering and later analytics. The request accepts `image/jpeg`, `image/png`, and `image/webp` only, with a maximum decoded file size of 10 MB.
+The `prompt` field is optional but recommended and is limited to 500 characters. `occasion`, `lengthPreference`, and `maintenancePreference` are optional, normalized values that improve filtering and later analytics. The request accepts `image/jpeg`, `image/png`, and `image/webp` only, with a maximum decoded file size of 10 MB. The service checks whether enough of the hairline, crown, and portrait framing is visible; a too-close photo is returned as a guided `422` retake response rather than generating an unreliable hairstyle result.
 
 ## Consultation Response
 
@@ -113,6 +113,7 @@ Every error uses a consistent response shape and includes a request ID for suppo
 | `400` | `VALIDATION_ERROR` | Invalid request body or field value |
 | `400` | `INVALID_IMAGE` | Unsupported or oversized portrait input |
 | `413` | `PAYLOAD_TOO_LARGE` | JSON body exceeds service limit |
+| `422` | `PHOTO_RETAKE_REQUIRED` | Portrait is too close or lacks enough visible hair framing for a reliable hairstyle-only preview |
 | `429` | `RATE_LIMITED` | Caller has exceeded the MVP request limit |
 | `502` | `AI_PROVIDER_ERROR` | Analysis or image-generation provider did not produce a usable result |
 | `500` | `INTERNAL_ERROR` | Unexpected server failure |
@@ -127,7 +128,7 @@ Every error uses a consistent response shape and includes a request ID for suppo
 | **AI adapters** | Calls multimodal analysis and image-edit providers only from the server | Add provider abstraction, model evaluation, fallbacks, and asynchronous retries |
 | **Client adapter** | Flutter/mobile client receives stable JSON and public asset URLs | Use generated Flutter DTOs from OpenAPI and signed authenticated uploads |
 
-The current MVP intentionally keeps no customer identity table and no database persistence. For production, the long-running image-edit request should become `POST /try-ons` → `202 Accepted` with a job identifier, a queue worker, a callback or polling endpoint, durable job state, and an auditable image-retention policy.
+The current MVP intentionally keeps no customer identity table and no database persistence. For production, the long-running image-edit request should become `POST /try-ons` → `202 Accepted` with a job identifier, a queue worker, a callback or polling endpoint, durable job state, and an auditable image-retention policy. The MVP defaults to medium image quality to reduce evaluation wait time; quality is environment-configured and should be measured against identity-preservation quality before any production choice.
 
 ## Flutter Integration Notes
 

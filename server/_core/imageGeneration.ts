@@ -30,8 +30,8 @@ export type GenerateImageOptions = {
     b64Json?: string;
     mimeType?: string;
   }>;
-  /** Forge image model enum, e.g. "MODEL_GPT_IMAGE_2". Defaults to GPT Image 2. */
-  model?: string;
+  /** Forge image model enum, e.g. "MODEL_GPT_IMAGE_2". Pass null to omit the model and use the platform fallback. */
+  model?: string | null;
   /** Generation quality, e.g. "medium" | "high". Defaults to "medium" for GPT Image 2. */
   quality?: string;
 };
@@ -52,7 +52,7 @@ export async function generateImage(options: GenerateImageOptions): Promise<Gene
   const baseUrl = ENV.forgeApiUrl.endsWith("/") ? ENV.forgeApiUrl : `${ENV.forgeApiUrl}/`;
   const fullUrl = new URL("images.v1.ImageService/GenerateImage", baseUrl).toString();
 
-  const model = options.model ?? DEFAULT_IMAGE_MODEL;
+  const model = options.model === null ? undefined : (options.model ?? DEFAULT_IMAGE_MODEL);
   const quality = options.quality ?? (model === DEFAULT_IMAGE_MODEL ? DEFAULT_IMAGE_QUALITY : undefined);
 
   const response = await fetch(fullUrl, {
@@ -66,7 +66,7 @@ export async function generateImage(options: GenerateImageOptions): Promise<Gene
     body: JSON.stringify({
       prompt: options.prompt,
       original_images: options.originalImages || [],
-      model,
+      ...(model ? { model } : {}),
       ...(quality ? { quality } : {}),
     }),
   });

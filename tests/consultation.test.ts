@@ -17,4 +17,15 @@ describe("consultation response parsing", () => {
     expect(result.recommendations).toEqual(fallbackRecommendations);
     expect(result.analysis.faceShape).toBe("Style profile ready");
   });
+
+  it("preserves a provider request to retake an overly close portrait", () => {
+    const result = parseStyleAnalysis(JSON.stringify({
+      portraitCheck: { status: "retake", message: "Step back slightly so the full hairline, crown, and shoulders are visible." },
+      analysis: {},
+      recommendations: [],
+    }));
+
+    expect(result.portraitCheck.status).toBe("retake");
+    expect(result.portraitCheck.message).toContain("full hairline");
+  });
 });

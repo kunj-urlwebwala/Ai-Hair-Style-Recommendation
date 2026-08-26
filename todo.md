@@ -16,3 +16,11 @@
 - [x] Strengthen hairstyle-only generation prompts and result metadata for identity preservation evaluation
 - [x] Add backend API reference documentation and integration examples for Flutter/Laravel
 - [x] Validate the updated end-to-end API and MVP test flow
+- [x] Make the virtual try-on screen fully scrollable and expose a clear return-to-photo action
+- [x] Add close-portrait detection and helpful retake guidance before AI analysis
+- [x] Reduce perceived generation latency with better job status handling and performance guidance
+- [x] Add environment-configured primary and fallback AI model routing for Gemini and OpenAI
+- [x] Separate frontend, backend, and database handoff materials with a clean directory structure
+- [x] Define the database integration contract for mapping the existing Laravel database
+- [x] Create a system architecture diagram and role-specific handoff guides for backend, Flutter, and project management teams
+- [x] Validate the reliability updates, configuration contract, and team-handoff package

@@ -41,6 +41,12 @@ paths:
           $ref: '#/components/responses/ValidationError'
         '413':
           $ref: '#/components/responses/PayloadTooLarge'
+        '422':
+          description: Portrait framing is too close or does not show enough hair for a hairstyle-only preview.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '502':
           $ref: '#/components/responses/AiProviderError'
   /hairstyle/try-ons:
@@ -149,12 +155,17 @@ components:
           description: Server-constrained hairstyle-only edit instruction.
     Consultation:
       type: object
-      required: [id, sourceImageUrl, requirements, analysis, recommendations]
+      required: [id, sourceImageUrl, requirements, portraitCheck, analysis, recommendations]
       properties:
         id: { type: string, example: con_9b9c3d1e }
         sourceImageUrl: { type: string, format: uri }
         requirements:
           $ref: '#/components/schemas/CustomerRequirements'
+        analysisModel:
+          type: string
+          description: The configured primary or fallback multimodal model that produced the analysis.
+        portraitCheck:
+          $ref: '#/components/schemas/PortraitCheck'
         analysis:
           $ref: '#/components/schemas/StyleAnalysis'
         recommendations:
@@ -200,6 +211,9 @@ components:
       properties:
         id: { type: string, example: try_9b9c3d1e }
         previewImageUrl: { type: string, format: uri }
+        generationModel:
+          type: string
+          description: The primary or fallback image-edit model that produced the preview.
         preservation:
           type: object
           required: [target, note]
@@ -241,3 +255,9 @@ components:
             message: { type: string }
             requestId: { type: string }
             details: { type: object }
+    PortraitCheck:
+      type: object
+      required: [status, message]
+      properties:
+        status: { type: string, enum: [ready, retake] }
+        message: { type: string }

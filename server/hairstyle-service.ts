@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { parseStyleAnalysis } from "../shared/consultation";
 import { generateImage } from "./_core/imageGeneration";
+import { ENV } from "./_core/env";
 import { invokeLLM } from "./_core/llm";
 import { storagePut } from "./storage";
 
@@ -71,6 +72,10 @@ When an explicitly stated wedding or festive requirement is present, styles may 
 
 Return valid JSON only with this shape:
 {
+  "portraitCheck": {
+    "status": "ready or retake",
+    "message": "short photo-framing instruction"
+  },
   "analysis": {
     "faceShape": "short neutral descriptor",
     "overview": "two concise sentences",
@@ -96,6 +101,40 @@ Provide exactly four varied recommendations. The edit prompt must describe hair 
 
 const tryOnPreservationGuardrails = `Edit the reference portrait with extreme restraint. Preserve the person's original face, identity, facial structure, skin tone and texture, eyes, nose, lips, beard or facial hair, expression, apparent age, body, clothing, pose, crop, background, lighting, camera angle, and image realism. Change only scalp hair and hairstyle. Do not beautify, smooth skin, reshape any face feature, alter beard, add hair accessories, add jewellery, alter makeup, recolor skin, alter clothing, or add non-hair objects. Keep the hairline believable and natural, retain credible texture, and create a realistic salon preview.`;
 
+async function invokeAnalysisWithFailover(messages: Parameters<typeof invokeLLM>[0]["messages"]) {
+  const candidates = [...new Set([ENV.analysisPrimaryModel, ENV.analysisFallbackModel].filter(Boolean))];
+  let lastError: unknown;
+  for (const model of candidates) {
+    try {
+      const response = await invokeLLM({ model, messages, response_format: { type: "json_object" } });
+      return { response, model };
+    } catch (error) {
+      lastError = error;
+      console.warn("[hairstyle-service] analysis model unavailable", { model, error: error instanceof Error ? error.message : "unknown error" });
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error("No configured analysis model could return a response.");
+}
+
+async function generateTryOnWithFailover(options: Parameters<typeof generateImage>[0]) {
+  const candidates = [...new Set<string | null>([
+    ENV.tryOnPrimaryImageModel || null,
+    ENV.tryOnFallbackImageModel || null,
+  ])];
+  let lastError: unknown;
+  for (const model of candidates) {
+    try {
+      const result = await generateImage({ ...options, model });
+      if (result.url) return { result, model: model ?? "platform-default" };
+      throw new Error("The image provider returned no preview URL.");
+    } catch (error) {
+      lastError = error;
+      console.warn("[hairstyle-service] preview model unavailable", { model: model ?? "platform-default", error: error instanceof Error ? error.message : "unknown error" });
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error("No configured image model could create a preview.");
+}
+
 function ensureInternalStoredPortrait(sourceImageUrl: string, publicOrigin: string) {
   const parsed = new URL(sourceImageUrl);
   const publicUrl = new URL(publicOrigin);
@@ -116,9 +155,7 @@ export async function createConsultation(input: AnalyzeInput) {
   const sourceImageUrl = storageUrl(input.publicOrigin, url);
 
   try {
-    const response = await invokeLLM({
-      model: "gemini-3-flash-preview",
-      messages: [
+    const { response, model } = await invokeAnalysisWithFailover([
         { role: "system", content: analysisSystemPrompt },
         {
           role: "user",
@@ -127,14 +164,16 @@ export async function createConsultation(input: AnalyzeInput) {
             { type: "image_url", image_url: { url: sourceImageUrl, detail: "high" } },
           ],
         },
-      ],
-      response_format: { type: "json_object" },
-    });
+      ]);
     const content = response.choices[0]?.message?.content;
     if (typeof content !== "string") throw new Error("No usable analysis content was returned.");
     const parsed = parseStyleAnalysis(content);
-    return { id: consultationId, sourceImageUrl, requirements, ...parsed };
+    if (parsed.portraitCheck.status === "retake") {
+      throw new ApiError(422, "PHOTO_RETAKE_REQUIRED", parsed.portraitCheck.message);
+    }
+    return { id: consultationId, sourceImageUrl, requirements, analysisModel: model, ...parsed };
   } catch (error) {
+    if (error instanceof ApiError) throw error;
     console.error("[hairstyle-service] analysis provider failed", error instanceof Error ? error.message : "unknown error");
     throw new ApiError(502, "AI_PROVIDER_ERROR", "The hairstyle analysis provider could not produce a consultation. Please try again.");
   }
@@ -147,10 +186,10 @@ export async function createTryOn(input: TryOnInput) {
   }
 
   try {
-    const result = await generateImage({
+    const { result, model } = await generateTryOnWithFailover({
       prompt: `Create a realistic virtual hairstyle try-on. Requested hairstyle: ${input.style.name}. Hairstyle description: ${input.style.prompt}\n\n${tryOnPreservationGuardrails}`,
       originalImages: [{ url: input.sourceImageUrl, mimeType: input.mimeType }],
-      quality: "high",
+      quality: ENV.tryOnImageQuality,
     });
     if (!result.url) throw new Error("The image provider returned no preview URL.");
     return {
@@ -160,6 +199,7 @@ export async function createTryOn(input: TryOnInput) {
         target: "hairstyle_only",
         note: "The generator was instructed to preserve identity and every non-hair feature. Results remain best-effort visual guidance.",
       },
+      generationModel: model,
     };
   } catch (error) {
     console.error("[hairstyle-service] image provider failed", error instanceof Error ? error.message : "unknown error");
