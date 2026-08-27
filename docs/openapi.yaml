@@ -15,12 +15,12 @@ paths:
       summary: Check API availability
       operationId: getHealth
       responses:
-        '200':
+        "200":
           description: API is available.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/HealthResponse'
+                $ref: "#/components/schemas/HealthResponse"
   /hairstyle/consultations:
     post:
       summary: Create an Indian-context hairstyle consultation
@@ -30,30 +30,30 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ConsultationRequest'
+              $ref: "#/components/schemas/ConsultationRequest"
       responses:
-        '201':
+        "201":
           description: Consultation was created.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ConsultationResponse'
-        '400':
-          $ref: '#/components/responses/ValidationError'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '413':
-          $ref: '#/components/responses/PayloadTooLarge'
-        '422':
+                $ref: "#/components/schemas/ConsultationResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "413":
+          $ref: "#/components/responses/PayloadTooLarge"
+        "422":
           description: Portrait framing is too close or does not show enough hair for a hairstyle-only preview.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '429':
-          $ref: '#/components/responses/RateLimited'
-        '502':
-          $ref: '#/components/responses/AiProviderError'
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "502":
+          $ref: "#/components/responses/AiProviderError"
   /hairstyle/saved-looks:
     get:
       summary: List the signed-in customer's saved looks
@@ -61,14 +61,14 @@ paths:
       security:
         - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: Saved looks ordered newest first.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SavedLooksResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                $ref: "#/components/schemas/SavedLooksResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
     post:
       summary: Save a generated preview to the customer's shortlist
       operationId: createSavedLook
@@ -79,18 +79,18 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SavedLookRequest'
+              $ref: "#/components/schemas/SavedLookRequest"
       responses:
-        '201':
+        "201":
           description: Look was saved.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SavedLookResponse'
-        '400':
-          $ref: '#/components/responses/ValidationError'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
+                $ref: "#/components/schemas/SavedLookResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
   /hairstyle/saved-looks/{id}:
     delete:
       summary: Remove a saved look
@@ -103,11 +103,11 @@ paths:
           required: true
           schema: { type: string }
       responses:
-        '200':
+        "200":
           description: Look was removed.
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '404':
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
           description: No such saved look for this account.
   /hairstyle/try-ons:
     post:
@@ -118,22 +118,22 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TryOnRequest'
+              $ref: "#/components/schemas/TryOnRequest"
       responses:
-        '201':
+        "201":
           description: Virtual try-on was generated.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TryOnResponse'
-        '400':
-          $ref: '#/components/responses/ValidationError'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '429':
-          $ref: '#/components/responses/RateLimited'
-        '502':
-          $ref: '#/components/responses/AiProviderError'
+                $ref: "#/components/schemas/TryOnResponse"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "502":
+          $ref: "#/components/responses/AiProviderError"
 components:
   securitySchemes:
     bearerAuth:
@@ -146,31 +146,31 @@ components:
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
+            $ref: "#/components/schemas/ErrorResponse"
     RateLimited:
       description: The account reached its daily limit for this feature.
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
+            $ref: "#/components/schemas/ErrorResponse"
     ValidationError:
       description: Request body or field validation failed.
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
+            $ref: "#/components/schemas/ErrorResponse"
     PayloadTooLarge:
       description: Request payload exceeds the API body limit.
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
+            $ref: "#/components/schemas/ErrorResponse"
     AiProviderError:
       description: A configured analysis or image-generation provider could not return a usable result.
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
+            $ref: "#/components/schemas/ErrorResponse"
   schemas:
     ImageInput:
       type: object
@@ -204,12 +204,13 @@ components:
       required: [image]
       properties:
         image:
-          $ref: '#/components/schemas/ImageInput'
+          $ref: "#/components/schemas/ImageInput"
         requirements:
-          $ref: '#/components/schemas/CustomerRequirements'
+          $ref: "#/components/schemas/CustomerRequirements"
     StyleAnalysis:
       type: object
-      required: [faceShape, overview, featureNotes, stylePrinciples, confidenceNote]
+      required:
+        [faceShape, overview, featureNotes, stylePrinciples, confidenceNote]
       properties:
         faceShape: { type: string }
         overview: { type: string }
@@ -222,7 +223,8 @@ components:
         confidenceNote: { type: string }
     HairstyleRecommendation:
       type: object
-      required: [id, name, description, whyItWorks, maintenance, texture, tone, prompt]
+      required:
+        [id, name, description, whyItWorks, maintenance, texture, tone, prompt]
       properties:
         id: { type: string }
         name: { type: string }
@@ -236,25 +238,33 @@ components:
           description: Server-constrained hairstyle-only edit instruction.
     Consultation:
       type: object
-      required: [id, sourceImageUrl, requirements, portraitCheck, analysis, recommendations]
+      required:
+        [
+          id,
+          sourceImageUrl,
+          requirements,
+          portraitCheck,
+          analysis,
+          recommendations,
+        ]
       properties:
         id: { type: string, example: con_9b9c3d1e }
         sourceImageUrl: { type: string, format: uri }
         requirements:
-          $ref: '#/components/schemas/CustomerRequirements'
+          $ref: "#/components/schemas/CustomerRequirements"
         analysisModel:
           type: string
           description: The configured primary or fallback multimodal model that produced the analysis.
         portraitCheck:
-          $ref: '#/components/schemas/PortraitCheck'
+          $ref: "#/components/schemas/PortraitCheck"
         analysis:
-          $ref: '#/components/schemas/StyleAnalysis'
+          $ref: "#/components/schemas/StyleAnalysis"
         recommendations:
           type: array
           minItems: 4
           maxItems: 4
           items:
-            $ref: '#/components/schemas/HairstyleRecommendation'
+            $ref: "#/components/schemas/HairstyleRecommendation"
     Meta:
       type: object
       required: [requestId, apiVersion]
@@ -270,9 +280,9 @@ components:
           required: [consultation]
           properties:
             consultation:
-              $ref: '#/components/schemas/Consultation'
+              $ref: "#/components/schemas/Consultation"
         meta:
-          $ref: '#/components/schemas/Meta'
+          $ref: "#/components/schemas/Meta"
     TryOnRequest:
       type: object
       required: [sourceImageUrl, mimeType, style]
@@ -310,9 +320,9 @@ components:
           required: [tryOn]
           properties:
             tryOn:
-              $ref: '#/components/schemas/TryOn'
+              $ref: "#/components/schemas/TryOn"
         meta:
-          $ref: '#/components/schemas/Meta'
+          $ref: "#/components/schemas/Meta"
     HealthResponse:
       type: object
       required: [data, meta]
@@ -323,7 +333,7 @@ components:
             status: { type: string, example: ok }
             service: { type: string, example: mirror-hairstyle-mvp }
         meta:
-          $ref: '#/components/schemas/Meta'
+          $ref: "#/components/schemas/Meta"
     ErrorResponse:
       type: object
       required: [error]
@@ -351,7 +361,7 @@ components:
           description: Must be a consultation created by this account.
           example: con_9b9c3d1e
         recommendation:
-          $ref: '#/components/schemas/HairstyleRecommendation'
+          $ref: "#/components/schemas/HairstyleRecommendation"
         previewImageUrl:
           type: string
           format: uri
@@ -365,9 +375,9 @@ components:
           required: [look]
           properties:
             look:
-              $ref: '#/components/schemas/SavedLook'
+              $ref: "#/components/schemas/SavedLook"
         meta:
-          $ref: '#/components/schemas/Meta'
+          $ref: "#/components/schemas/Meta"
     SavedLooksResponse:
       type: object
       required: [data, meta]
@@ -379,9 +389,9 @@ components:
             looks:
               type: array
               items:
-                $ref: '#/components/schemas/SavedLook'
+                $ref: "#/components/schemas/SavedLook"
         meta:
-          $ref: '#/components/schemas/Meta'
+          $ref: "#/components/schemas/Meta"
     SavedLook:
       type: object
       required: [id, consultationId, recommendation, previewImageUrl, createdAt]
@@ -389,6 +399,6 @@ components:
         id: { type: string, example: look_9b9c3d1e2f3a4b5c }
         consultationId: { type: string }
         recommendation:
-          $ref: '#/components/schemas/HairstyleRecommendation'
+          $ref: "#/components/schemas/HairstyleRecommendation"
         previewImageUrl: { type: string, format: uri }
         createdAt: { type: string, format: date-time }

@@ -16,7 +16,11 @@ export function getApiBaseUrl(): string {
     return API_BASE_URL.replace(/\/$/, "");
   }
 
-  if (Platform.OS === "web" && typeof window !== "undefined" && window.location) {
+  if (
+    Platform.OS === "web" &&
+    typeof window !== "undefined" &&
+    window.location
+  ) {
     const { protocol, hostname } = window.location;
     // Metro on any other host: assume the API is published on port 3000 of the same host.
     if (!hostname.startsWith("8081-")) {

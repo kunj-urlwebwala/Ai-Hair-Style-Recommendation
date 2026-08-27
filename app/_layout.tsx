@@ -37,7 +37,10 @@ export function ErrorBoundary({ error }: { error: Error }) {
           <Text style={{ textAlign: "center", color: "#665D60" }}>
             The app hit an unexpected error. Reloading usually fixes it.
           </Text>
-          <Text selectable style={{ fontSize: 11, color: "#8E8587", marginTop: 8 }}>
+          <Text
+            selectable
+            style={{ fontSize: 11, color: "#8E8587", marginTop: 8 }}
+          >
             {error.message}
           </Text>
         </ThemedView>
