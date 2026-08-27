@@ -90,8 +90,6 @@ export default function RootLayout() {
                     Screens that need one should opt in via Stack.Screen options. */}
                 <Stack screenOptions={{ headerShown: false }}>
                   <Stack.Screen name="(tabs)" />
-                  <Stack.Screen name="login" />
-                  <Stack.Screen name="forgot-password" />
                 </Stack>
                 <StatusBar style="dark" />
               </ConsultationProvider>

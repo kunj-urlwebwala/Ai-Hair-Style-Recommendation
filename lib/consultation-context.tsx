@@ -1,6 +1,5 @@
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { apiCall } from "@/lib/_core/api";
-import { useAuth } from "@/hooks/use-auth";
 import type { HairstyleRecommendation, StyleAnalysis } from "@/shared/consultation";
 
 export type ConsultationState = {
@@ -33,17 +32,11 @@ type ConsultationContextValue = {
 const ConsultationContext = createContext<ConsultationContextValue | null>(null);
 
 export function ConsultationProvider({ children }: { children: ReactNode }) {
-  const { isAuthenticated } = useAuth();
   const [consultation, setConsultation] = useState<ConsultationState | null>(null);
   const [savedLooks, setSavedLooks] = useState<SavedLook[]>([]);
 
-  // Load the persisted shortlist once the customer signs in.
+  // Load the persisted shortlist.
   useEffect(() => {
-    if (!isAuthenticated) {
-      setSavedLooks([]);
-      return;
-    }
-
     let cancelled = false;
     apiCall<{ looks: SavedLook[] }>("/api/v1/hairstyle/saved-looks")
       .then(({ looks }) => {
@@ -53,7 +46,7 @@ export function ConsultationProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [isAuthenticated]);
+  }, []);
 
   const saveLook = useCallback(
     async (recommendation: HairstyleRecommendation) => {

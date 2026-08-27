@@ -8,8 +8,6 @@ import { ActivityIndicator, Alert, FlatList, Platform, Pressable, ScrollView, St
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { getApiBaseUrl } from "@/constants/api";
-import { useAuth } from "@/hooks/use-auth";
-import { getSessionToken } from "@/lib/_core/auth";
 import { useConsultation } from "@/lib/consultation-context";
 import { styleCatalog } from "@/shared/style-catalog";
 import type { HairstyleRecommendation } from "@/shared/consultation";
@@ -31,10 +29,9 @@ class ApiClientError extends Error {
 }
 
 async function postApi<T>(path: string, body: unknown): Promise<T> {
-  const sessionToken = await getSessionToken();
   const response = await fetch(`${getApiBaseUrl()}${path}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", ...(sessionToken ? { Authorization: `Bearer ${sessionToken}` } : {}) },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
   const payload = await response.json().catch(() => null);
@@ -52,7 +49,6 @@ function Header({ onBack, label }: { onBack?: () => void; label?: string }) {
 
 export default function TryOnScreen() {
   const router = useRouter();
-  const { isAuthenticated } = useAuth();
   const { consultation, setConsultation, setPreview, saveLook, removeLook, clearConsultation } = useConsultation();
   const [page, setPage] = useState<Page>(consultation ? "profile" : "home");
   const [portrait, setPortrait] = useState<Portrait | null>(null);
@@ -96,32 +92,18 @@ export default function TryOnScreen() {
   }, []);
 
   const startFlow = useCallback(() => {
-    if (!isAuthenticated) {
-      Alert.alert("Sign in first", "Create a free account or sign in so your looks stay saved.", [
-        { text: "Not now", style: "cancel" },
-        { text: "Sign in", onPress: () => router.navigate("/login") },
-      ]);
-      return;
-    }
     clearConsultation();
     setPortrait(null);
     setCatalogPick(null);
     setPage("photo");
-  }, [clearConsultation, isAuthenticated]);
+  }, [clearConsultation]);
 
   const startFromCatalog = useCallback((style: HairstyleRecommendation) => {
-    if (!isAuthenticated) {
-      Alert.alert("Sign in first", "Create a free account or sign in so your looks stay saved.", [
-        { text: "Not now", style: "cancel" },
-        { text: "Sign in", onPress: () => router.navigate("/login") },
-      ]);
-      return;
-    }
     clearConsultation();
     setPortrait(null);
     setCatalogPick(style);
     setPage("photo");
-  }, [clearConsultation, isAuthenticated]);
+  }, [clearConsultation]);
 
   const analyzePortrait = useCallback(async () => {
     if (!portrait) return;
@@ -152,10 +134,9 @@ export default function TryOnScreen() {
       if (error instanceof ApiClientError && error.code === "PHOTO_RETAKE_REQUIRED") {
         setPage("review");
         Alert.alert("Use a wider portrait", error.message, [{ text: "Retake portrait", onPress: () => setPage("photo") }, { text: "Review photo", style: "cancel" }]);
-      } else if (error instanceof ApiClientError && (error.code === "UNAUTHORIZED" || error.code === "RATE_LIMITED")) {
+      } else if (error instanceof ApiClientError && error.code === "RATE_LIMITED") {
         setPage("requirements");
-        if (error.code === "UNAUTHORIZED") router.navigate("/login");
-        Alert.alert(error.code === "UNAUTHORIZED" ? "Session expired" : "Daily limit reached", error.message);
+        Alert.alert("Daily limit reached", error.message);
       } else {
         setPage("requirements");
         Alert.alert("Analysis paused", error instanceof Error ? error.message : "Please check your connection and try again.");
@@ -173,7 +154,6 @@ export default function TryOnScreen() {
       setPreview(style.id, previewImageUrl);
       Platform.OS !== "web" && Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
     } catch (error) {
-      if (error instanceof ApiClientError && error.code === "UNAUTHORIZED") router.navigate("/login");
       Alert.alert("Preview unavailable", error instanceof Error ? error.message : "We could not create this hairstyle preview. Please try again.");
     } finally { setIsTryOnLoading(false); }
   }, [consultation, portrait, requestTryOn, setPreview]);
