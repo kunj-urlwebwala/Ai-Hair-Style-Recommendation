@@ -26,18 +26,18 @@ pnpm dev
 
 ## Environment variables
 
-| Variable | Purpose |
-| --- | --- |
-| `JWT_SECRET` | Signs session tokens (required) |
-| `DATABASE_URL` | SQLite file path, default `file:./database/mirror.db` |
-| `STORAGE_DIR` | Local folder for uploads/previews, default `./storage/uploads` |
-| `GEMINI_API_KEY` | Google AI Studio key for analysis + image try-on |
-| `OPENAI_API_KEY` | OpenAI fallback for analysis + image try-on |
-| `AI_ANALYSIS_PRIMARY_MODEL` / `AI_ANALYSIS_FALLBACK_MODEL` | Text models, tried in order |
-| `AI_TRYON_PRIMARY_IMAGE_MODEL` / `AI_TRYON_FALLBACK_IMAGE_MODEL` | Image models, tried in order |
-| `AI_RATE_LIMIT_CONSULTATIONS` / `AI_RATE_LIMIT_TRY_ONS` | Per-account daily limits (default 15 / 30) |
-| `RESEND_API_KEY` + `MAIL_FROM` | Optional; enables password-reset emails via Resend |
-| `EXPO_PUBLIC_API_BASE_URL` | Set when running the app on a physical device |
+| Variable                                                         | Purpose                                                        |
+| ---------------------------------------------------------------- | -------------------------------------------------------------- |
+| `JWT_SECRET`                                                     | Signs session tokens (required)                                |
+| `DATABASE_URL`                                                   | SQLite file path, default `file:./database/mirror.db`          |
+| `STORAGE_DIR`                                                    | Local folder for uploads/previews, default `./storage/uploads` |
+| `GEMINI_API_KEY`                                                 | Google AI Studio key for analysis + image try-on               |
+| `OPENAI_API_KEY`                                                 | OpenAI fallback for analysis + image try-on                    |
+| `AI_ANALYSIS_PRIMARY_MODEL` / `AI_ANALYSIS_FALLBACK_MODEL`       | Text models, tried in order                                    |
+| `AI_TRYON_PRIMARY_IMAGE_MODEL` / `AI_TRYON_FALLBACK_IMAGE_MODEL` | Image models, tried in order                                   |
+| `AI_RATE_LIMIT_CONSULTATIONS` / `AI_RATE_LIMIT_TRY_ONS`          | Per-account daily limits (default 15 / 30)                     |
+| `RESEND_API_KEY` + `MAIL_FROM`                                   | Optional; enables password-reset emails via Resend             |
+| `EXPO_PUBLIC_API_BASE_URL`                                       | Set when running the app on a physical device                  |
 
 ## Auth
 

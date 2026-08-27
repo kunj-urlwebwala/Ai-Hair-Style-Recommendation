@@ -8,11 +8,11 @@ The first integration surface is a versioned JSON REST API under `/api/v1`. The 
 
 ## Request Lifecycle
 
-| Stage | REST endpoint | Input | Output |
-|---|---|---|---|
+| Stage                           | REST endpoint                          | Input                                                                                                    | Output                                                                                                                                                  |
+| ------------------------------- | -------------------------------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Validate and analyze a portrait | `POST /api/v1/hairstyle/consultations` | Portrait bytes as base64, MIME type, free-text requirement, optional occasion and maintenance preference | `422 PHOTO_RETAKE_REQUIRED` when the full hair framing is unavailable, otherwise stored source image, neutral visual analysis, and four recommendations |
-| Generate a selected look | `POST /api/v1/hairstyle/try-ons` | Source image URL, style name, style-only prompt, original MIME type | Stored preview URL and generation metadata |
-| Check API availability | `GET /api/v1/health` | None | Version, service health, and request ID |
+| Generate a selected look        | `POST /api/v1/hairstyle/try-ons`       | Source image URL, style name, style-only prompt, original MIME type                                      | Stored preview URL and generation metadata                                                                                                              |
+| Check API availability          | `GET /api/v1/health`                   | None                                                                                                     | Version, service health, and request ID                                                                                                                 |
 
 ## Indian-Context Recommendation Policy
 
@@ -108,25 +108,25 @@ Every error uses a consistent response shape and includes a request ID for suppo
 }
 ```
 
-| HTTP status | Error code | Meaning |
-|---|---|---|
-| `400` | `VALIDATION_ERROR` | Invalid request body or field value |
-| `400` | `INVALID_IMAGE` | Unsupported or oversized portrait input |
-| `413` | `PAYLOAD_TOO_LARGE` | JSON body exceeds service limit |
-| `422` | `PHOTO_RETAKE_REQUIRED` | Portrait is too close or lacks enough visible hair framing for a reliable hairstyle-only preview |
-| `429` | `RATE_LIMITED` | Caller has exceeded the MVP request limit |
-| `502` | `AI_PROVIDER_ERROR` | Analysis or image-generation provider did not produce a usable result |
-| `500` | `INTERNAL_ERROR` | Unexpected server failure |
+| HTTP status | Error code              | Meaning                                                                                          |
+| ----------- | ----------------------- | ------------------------------------------------------------------------------------------------ |
+| `400`       | `VALIDATION_ERROR`      | Invalid request body or field value                                                              |
+| `400`       | `INVALID_IMAGE`         | Unsupported or oversized portrait input                                                          |
+| `413`       | `PAYLOAD_TOO_LARGE`     | JSON body exceeds service limit                                                                  |
+| `422`       | `PHOTO_RETAKE_REQUIRED` | Portrait is too close or lacks enough visible hair framing for a reliable hairstyle-only preview |
+| `429`       | `RATE_LIMITED`          | Caller has exceeded the MVP request limit                                                        |
+| `502`       | `AI_PROVIDER_ERROR`     | Analysis or image-generation provider did not produce a usable result                            |
+| `500`       | `INTERNAL_ERROR`        | Unexpected server failure                                                                        |
 
 ## Node.js MVP Architecture
 
-| Layer | Responsibility | Production evolution |
-|---|---|---|
-| **Express REST router** | Versioned endpoints, request IDs, CORS, schema validation, and error envelope | Add API gateway, OpenAPI-based code generation, and OAuth/JWT middleware |
-| **Hairstyle service** | Image preparation, Indian-context AI instruction, response parsing, hairstyle-only generation guardrails | Move to isolated workers and idempotent job records |
-| **Object storage adapter** | Stores source portraits and generated preview assets | Add encryption policy, TTL lifecycle deletion, malware scanning, and tenant-scoped keys |
-| **AI adapters** | Calls multimodal analysis and image-edit providers only from the server | Add provider abstraction, model evaluation, fallbacks, and asynchronous retries |
-| **Client adapter** | Flutter/mobile client receives stable JSON and public asset URLs | Use generated Flutter DTOs from OpenAPI and signed authenticated uploads |
+| Layer                      | Responsibility                                                                                           | Production evolution                                                                    |
+| -------------------------- | -------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| **Express REST router**    | Versioned endpoints, request IDs, CORS, schema validation, and error envelope                            | Add API gateway, OpenAPI-based code generation, and OAuth/JWT middleware                |
+| **Hairstyle service**      | Image preparation, Indian-context AI instruction, response parsing, hairstyle-only generation guardrails | Move to isolated workers and idempotent job records                                     |
+| **Object storage adapter** | Stores source portraits and generated preview assets                                                     | Add encryption policy, TTL lifecycle deletion, malware scanning, and tenant-scoped keys |
+| **AI adapters**            | Calls multimodal analysis and image-edit providers only from the server                                  | Add provider abstraction, model evaluation, fallbacks, and asynchronous retries         |
+| **Client adapter**         | Flutter/mobile client receives stable JSON and public asset URLs                                         | Use generated Flutter DTOs from OpenAPI and signed authenticated uploads                |
 
 The current MVP intentionally keeps no customer identity table and no database persistence. For production, the long-running image-edit request should become `POST /try-ons` → `202 Accepted` with a job identifier, a queue worker, a callback or polling endpoint, durable job state, and an auditable image-retention policy. The MVP defaults to medium image quality to reduce evaluation wait time; quality is environment-configured and should be measured against identity-preservation quality before any production choice.
 

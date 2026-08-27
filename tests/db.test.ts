@@ -78,8 +78,16 @@ describe("database layer", () => {
   });
 
   it("invalidates older reset codes when a new one is issued", async () => {
-    await createPasswordResetOtp("db.test@example.com", "hash-old", Date.now() + 60_000);
-    await createPasswordResetOtp("db.test@example.com", "hash-new", Date.now() + 60_000);
+    await createPasswordResetOtp(
+      "db.test@example.com",
+      "hash-old",
+      Date.now() + 60_000,
+    );
+    await createPasswordResetOtp(
+      "db.test@example.com",
+      "hash-new",
+      Date.now() + 60_000,
+    );
 
     const pending = await getPendingResetOtp("db.test@example.com");
     expect(pending?.otpHash).toBe("hash-new");

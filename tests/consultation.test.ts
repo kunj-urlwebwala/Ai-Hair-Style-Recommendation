@@ -1,29 +1,57 @@
 import { describe, expect, it } from "vitest";
-import { fallbackRecommendations, parseStyleAnalysis } from "../shared/consultation";
+import {
+  fallbackRecommendations,
+  parseStyleAnalysis,
+} from "../shared/consultation";
 
 describe("consultation response parsing", () => {
   it("normalizes a valid structured hairstyle consultation", () => {
-    const result = parseStyleAnalysis(JSON.stringify({
-      analysis: { faceShape: "Soft oval silhouette", overview: "A balanced visual frame.", featureNotes: ["Note one", "Note two", "Note three"], stylePrinciples: ["Principle one", "Principle two", "Principle three"], confidenceNote: "A one-photo visual guide." },
-      recommendations: [{ ...fallbackRecommendations[0], id: "warm-lob", maintenance: "Low" }, fallbackRecommendations[1], fallbackRecommendations[2], fallbackRecommendations[3]],
-    }));
+    const result = parseStyleAnalysis(
+      JSON.stringify({
+        analysis: {
+          faceShape: "Soft oval silhouette",
+          overview: "A balanced visual frame.",
+          featureNotes: ["Note one", "Note two", "Note three"],
+          stylePrinciples: [
+            "Principle one",
+            "Principle two",
+            "Principle three",
+          ],
+          confidenceNote: "A one-photo visual guide.",
+        },
+        recommendations: [
+          { ...fallbackRecommendations[0], id: "warm-lob", maintenance: "Low" },
+          fallbackRecommendations[1],
+          fallbackRecommendations[2],
+          fallbackRecommendations[3],
+        ],
+      }),
+    );
     expect(result.analysis.faceShape).toBe("Soft oval silhouette");
     expect(result.recommendations).toHaveLength(4);
     expect(result.recommendations[0].maintenance).toBe("Low");
   });
 
   it("uses curated styles when the generated payload is incomplete", () => {
-    const result = parseStyleAnalysis(JSON.stringify({ analysis: {}, recommendations: [] }));
+    const result = parseStyleAnalysis(
+      JSON.stringify({ analysis: {}, recommendations: [] }),
+    );
     expect(result.recommendations).toEqual(fallbackRecommendations);
     expect(result.analysis.faceShape).toBe("Style profile ready");
   });
 
   it("preserves a provider request to retake an overly close portrait", () => {
-    const result = parseStyleAnalysis(JSON.stringify({
-      portraitCheck: { status: "retake", message: "Step back slightly so the full hairline, crown, and shoulders are visible." },
-      analysis: {},
-      recommendations: [],
-    }));
+    const result = parseStyleAnalysis(
+      JSON.stringify({
+        portraitCheck: {
+          status: "retake",
+          message:
+            "Step back slightly so the full hairline, crown, and shoulders are visible.",
+        },
+        analysis: {},
+        recommendations: [],
+      }),
+    );
 
     expect(result.portraitCheck.status).toBe("retake");
     expect(result.portraitCheck.message).toContain("full hairline");

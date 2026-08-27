@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { createTryOn, customerRequirementsSchema } from "../server/hairstyle-service";
+import {
+  createTryOn,
+  customerRequirementsSchema,
+} from "../server/hairstyle-service";
 
 describe("hairstyle service API contract", () => {
   it("normalizes valid Indian salon preference cues", () => {
@@ -17,11 +20,16 @@ describe("hairstyle service API contract", () => {
   });
 
   it("rejects a try-on source that was not created by the consultation API", async () => {
-    await expect(createTryOn({
-      sourceImageUrl: "https://untrusted.example.com/portrait.jpg",
-      mimeType: "image/jpeg",
-      style: { name: "Soft layered lob", prompt: "Create a collarbone-length lob with soft natural movement." },
-      publicOrigin: "https://api.mirror.example.com",
-    })).rejects.toMatchObject({ code: "INVALID_SOURCE_IMAGE", status: 400 });
+    await expect(
+      createTryOn({
+        sourceImageUrl: "https://untrusted.example.com/portrait.jpg",
+        mimeType: "image/jpeg",
+        style: {
+          name: "Soft layered lob",
+          prompt: "Create a collarbone-length lob with soft natural movement.",
+        },
+        publicOrigin: "https://api.mirror.example.com",
+      }),
+    ).rejects.toMatchObject({ code: "INVALID_SOURCE_IMAGE", status: 400 });
   });
 });

@@ -1,6 +1,9 @@
 import { getApiBaseUrl } from "@/constants/api";
 
-export async function apiCall<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+export async function apiCall<T>(
+  endpoint: string,
+  options: RequestInit = {},
+): Promise<T> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...((options.headers as Record<string, string>) || {}),

@@ -25,9 +25,9 @@ const config: ExpoConfig = {
   ios: {
     supportsTablet: true,
     bundleIdentifier: env.iosBundleId,
-    "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
-      }
+    infoPlist: {
+      ITSAppUsesNonExemptEncryption: false,
+    },
   },
   android: {
     adaptiveIcon: {
@@ -64,8 +64,10 @@ const config: ExpoConfig = {
     [
       "expo-image-picker",
       {
-        photosPermission: "Allow $(PRODUCT_NAME) to access a portrait for hairstyle consultations.",
-        cameraPermission: "Allow $(PRODUCT_NAME) to take a portrait for hairstyle consultations.",
+        photosPermission:
+          "Allow $(PRODUCT_NAME) to access a portrait for hairstyle consultations.",
+        cameraPermission:
+          "Allow $(PRODUCT_NAME) to take a portrait for hairstyle consultations.",
       },
     ],
     [
